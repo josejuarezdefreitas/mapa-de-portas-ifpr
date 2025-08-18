@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Mapa de Portas de Switch</title>
+    <link rel="stylesheet" href="style.css"> <style>
+        /* Estilos específicos para a página de login */
+        /* Dentro do <style> em login.html */
+		body {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 100vh;
+			}
+        .login-container h1 { margin-bottom: 2rem; color: var(--text-color-dark); }
+        .form-group { text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Login</h1>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" id="login-btn">Entrar</button>
+            <p id="error-message" style="color: red; margin-top: 1rem;"></p>
+        </form>
+    </div>
+
+    
+<script type="module">
+    // Importa as funções necessárias da v9 e a nossa instância de autenticação
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+    import { auth } from './firebase-config.js'; // Nosso arquivo centralizado!
+
+    const loginForm = document.getElementById('login-form');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const errorMsg = document.getElementById('error-message');
+
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = emailInput.value;
+        const password = passwordInput.value;
+
+        // Sintaxe da v9 para fazer login
+        signInWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                // Se o login for bem-sucedido, redireciona para a página principal
+                window.location.href = 'index.html';
+            })
+            .catch((error) => {
+                errorMsg.textContent = 'Email ou senha inválidos.';
+                console.error("Erro de login:", error);
+            });
+    });
+</script>
+</body>
+</html>

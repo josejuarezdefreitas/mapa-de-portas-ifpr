@@ -1,0 +1,6 @@
+# Arquivos de configuração do Visual Studio Code
+.vscode/
+
+# Arquivos de sistema (macOS, Windows)
+.DS_Store
+Thumbs.db

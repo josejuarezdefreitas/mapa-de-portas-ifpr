@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Portas de Switch - IFPR</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <header class="header">
+        <h1>🗺️ IFPR - União da Vitória - Mapa de Portas de Switch</h1>
+        <div class="actions">
+            <input type="search" id="search-bar" placeholder="Buscar por IP, MAC, dispositivo...">
+            <button id="templates-btn">Gerenciar Modelos</button>
+            <button id="logs-btn">Ver Histórico</button>
+            <button id="add-switch-btn">Adicionar Novo Switch</button>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="switch-rack">
+            </div>
+    </main>
+
+    <div id="port-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn">&times;</button>
+            <h2 id="port-modal-title">Editar Porta X</h2>
+            <form id="port-form">
+                <div class="form-group">
+                    <label for="device-name">Nome do Dispositivo:</label>
+                    <input type="text" id="device-name" name="deviceName" placeholder="Ex: PC-CONTABIL-01">
+                </div>
+                <div class="form-group">
+                    <label for="device-type">Tipo de Dispositivo:</label>
+                    <select id="device-type" name="deviceType">
+                        <option value="vazio">-- Vazio --</option>
+                        <option value="computador">Computador</option>
+                        <option value="impressora">Impressora</option>
+                        <option value="servidor">Servidor</option>
+                        <option value="access-point">Access Point</option>
+                        <option value="roteador">Roteador</option>
+                        <option value="switch">Switch</option>
+                        <option value="telefone-ip">Telefone IP</option>
+                        <option value="camera">Câmera</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="vlan-id">VLAN ID:</label>
+                    <input type="number" id="vlan-id" name="vlanId" placeholder="Ex: 10">
+                </div>
+                <div class="form-group">
+                    <label for="mac-address">Endereço MAC:</label>
+                    <input type="text" id="mac-address" name="macAddress" placeholder="00:1B:44:11:3A:B7">
+                </div>
+                <div class="form-group">
+                    <label for="ip-address">Endereço IP:</label>
+                    <input type="text" id="ip-address" name="ipAddress" placeholder="192.168.1.100">
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notas Adicionais:</label>
+                    <textarea id="notes" name="notes" rows="3" placeholder="Ponto de rede na mesa ao lado da janela..."></textarea>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" id="mark-damaged-btn">Marcar Danificada</button>
+                    <button type="button" id="clear-data-btn">Limpar Dados</button>
+                    <button type="submit" id="save-data-btn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="add-switch-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn">&times;</button>
+            <h2>Adicionar Novo Switch</h2>
+            <form id="add-switch-form">
+                <div class="form-group">
+                    <label for="switch-template">Escolha o Modelo:</label>
+                    <select id="switch-template" name="templateKey" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="switch-custom-name">Nome Personalizado:</label>
+                    <input type="text" id="switch-custom-name" name="customName" placeholder="Ex: Switch Principal do Datacenter" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" id="create-switch-btn">Criar Switch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-switch-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn">&times;</button>
+            <h2>Editar Dados do Switch</h2>
+            <form id="edit-switch-form">
+                <div class="form-group">
+                    <label for="edit-switch-name">Nome Personalizado:</label>
+                    <input type="text" id="edit-switch-name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-switch-location">Localização:</label>
+                    <input type="text" id="edit-switch-location" name="location" placeholder="Ex: Datacenter, Rack 02, Posição 5U">
+                </div>
+                <div class="form-group">
+                    <label for="edit-switch-ip">Endereço IP de Gerenciamento:</label>
+                    <input type="text" id="edit-switch-ip" name="ip" placeholder="Ex: 192.168.0.2">
+                </div>
+                <div class="form-group">
+                    <label for="edit-switch-mac">Endereço MAC:</label>
+                    <input type="text" id="edit-switch-mac" name="mac" placeholder="Ex: 00:1A:2B:3C:4D:5E">
+                </div>
+                <div class="form-group">
+                    <label for="edit-switch-url">Link de Acesso (URL):</label>
+                    <input type="text" id="edit-switch-url" name="url" placeholder="Ex: https://192.168.0.2">
+                </div>
+                <div class="form-group">
+                    <label for="edit-switch-assetId">Nº de Património:</label>
+                    <input type="text" id="edit-switch-assetId" name="assetId" placeholder="Ex: #123456">
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" id="save-switch-btn">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="delete-confirm-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn">&times;</button>
+            <h2>Confirmar Exclusão</h2>
+            <p>
+                Esta ação é irreversível. Para confirmar que deseja apagar o switch 
+                <strong id="delete-switch-name"></strong>, 
+                por favor, digite o nome dele no campo abaixo.
+            </p>
+            <form id="delete-confirm-form">
+                <div class="form-group">
+                    <label for="delete-confirm-input">Nome do Switch:</label>
+                    <input type="text" id="delete-confirm-input" autocomplete="off">
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" id="delete-confirm-btn" disabled>Confirmar Exclusão</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="logs-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 800px;">
+            <button class="modal-close-btn">&times;</button>
+            <h2>Histórico de Alterações</h2>
+            <div id="logs-container">
+                </div>
+        </div>
+    </div>
+
+    <div id="templates-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 900px; display: flex; gap: 2rem;">
+            <button class="modal-close-btn">&times;</button>
+            <div class="templates-list-container">
+                <h2>Modelos Existentes</h2>
+                <div id="templates-list">
+                    </div>
+            </div>
+            <div class="template-form-container">
+                <h2 id="template-form-title">Adicionar Novo Modelo</h2>
+                <form id="template-form">
+                    <input type="hidden" id="template-id" name="templateId">
+                    <div class="form-group">
+                        <label for="template-name">Nome do Modelo (Ex: Aruba 1930 48G):</label>
+                        <input type="text" id="template-name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="template-model">Descrição (Ex: 52 Portas (48 Cobre + 4 Fibra)):</label>
+                        <input type="text" id="template-model" name="model" required>
+                    </div>
+                    
+                    <strong class="form-section-title">Bloco de Portas 1</strong>
+                    <div class="form-group-inline">
+                        <div class="form-group">
+                            <label for="template-b1-type">Tipo:</label>
+                            <select id="template-b1-type" name="b1_type">
+                                <option value="copper">Cobre (RJ45)</option>
+                                <option value="sfp">Fibra (SFP)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="template-b1-count">Nº de Portas:</label>
+                            <input type="number" id="template-b1-count" name="b1_count" min="1" required>
+                        </div>
+                    </div>
+
+                    <strong class="form-section-title">Bloco de Portas 2 (Opcional)</strong>
+                     <div class="form-group-inline">
+                        <div class="form-group">
+                            <label for="template-b2-type">Tipo:</label>
+                            <select id="template-b2-type" name="b2_type">
+                                <option value="copper">Cobre (RJ45)</option>
+                                <option value="sfp">Fibra (SFP)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="template-b2-count">Nº de Portas:</label>
+                            <input type="number" id="template-b2-count" name="b2_count" min="1">
+                        </div>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="button" id="cancel-edit-template-btn" style="display: none;">Cancelar Edição</button>
+                        <button type="submit" id="save-template-btn">Adicionar Modelo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="port-tooltip"></div>
+
+    <script src="main.js" type="module"></script>
+</body>
+</html>
