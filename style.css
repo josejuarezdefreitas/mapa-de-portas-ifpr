@@ -383,6 +383,7 @@ body {
     background-color: #a0aec0;
     cursor: not-allowed;
 }
+
 /* Novas cores por tipo de dispositivo (com maior especificidade) */
 .port.port-type-computador { background-color: #3182ce; } /* Azul */
 .port.port-type-impressora { background-color: #dd6b20; } /* Laranja */
