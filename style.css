@@ -63,6 +63,7 @@ body {
 #templates-btn { background-color: #38a169; }
 #logout-btn { background-color: #c53030; }
 
+
 .main-container {
     padding: 2rem;
 }
@@ -343,4 +344,124 @@ body {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     opacity: 0;
     transform: translateX(100%);
-    animation: slide
+    animation: slideInAndOut 4s forwards;
+}
+
+.toast.toast-success {
+    background-color: #48bb78;
+}
+
+.toast.toast-error {
+    background-color: #c53030;
+}
+
+@keyframes slideInAndOut {
+    0% {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    15% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    85% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+#delete-confirm-btn {
+    background-color: var(--port-bg-damaged);
+    color: white;
+}
+
+#delete-confirm-btn:disabled {
+    background-color: #a0aec0;
+    cursor: not-allowed;
+}
+/* Novas cores por tipo de dispositivo (com maior especificidade) */
+.port.port-type-computador { background-color: #3182ce; } /* Azul */
+.port.port-type-impressora { background-color: #dd6b20; } /* Laranja */
+.port.port-type-servidor { background-color: #5a67d8; } /* Indigo */
+.port.port-type-access-point { background-color: #38a169; } /* Verde Escuro */
+.port.port-type-roteador { background-color: #d53f8c; } /* Rosa */
+.port.port-type-telefone-ip { background-color: #805ad5; } /* Roxo */
+.port.port-type-camera { background-color: #2c7a7b; } /* Azul-petróleo */
+.port.port-type-switch { background-color: #0891b2; } /* Ciano */ 
+.port.port-type-outro { background-color: #718096; } /* Cinza Ardósia */
+
+#logs-container {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-top: 1px solid var(--border-color);
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+}
+
+.log-entry {
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-entry .user { font-weight: bold; color: #3182ce; }
+.log-entry .time { color: #718096; font-size: 0.8rem; }
+.log-entry .details { margin-top: 4px; }
+
+.templates-list-container {
+    flex: 1;
+    border-right: 1px solid var(--border-color);
+    padding-right: 2rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.template-form-container {
+    flex: 2;
+}
+
+.template-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 6px;
+}
+.template-item:nth-child(odd) {
+    background-color: #f7fafc;
+}
+
+.template-item-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-left: 0.5rem;
+}
+
+.form-group-inline {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-section-title {
+    display: block;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.25rem;
+}
+
+#cancel-edit-template-btn {
+    background-color: #718096;
+    margin-right: auto;
+    color: white;
+}
