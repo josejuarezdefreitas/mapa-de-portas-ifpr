@@ -155,6 +155,17 @@
         <div class="modal-content" style="max-width: 800px;">
             <button class="modal-close-btn">&times;</button>
             <h2>Histórico de Alterações</h2>
+            <div class="log-filters">
+                <div class="form-group">
+                    <label for="log-start-date">De:</label>
+                    <input type="date" id="log-start-date">
+                </div>
+                <div class="form-group">
+                    <label for="log-end-date">Até:</label>
+                    <input type="date" id="log-end-date">
+                </div>
+                <button id="log-filter-btn">Filtrar por Data</button>
+            </div>
             <div id="logs-container">
                 </div>
         </div>

@@ -269,26 +269,69 @@ function startApp() {
     }
 
     addSwitchBtn.addEventListener('click', () => openModal(addSwitchModal));
-    logsBtn.addEventListener('click', async () => {
-        const logQuery = query(ref(database, 'logs'), orderByChild('timestamp'), limitToLast(100));
+    // SUBSTITUA o seu listener de logsBtn.addEventListener('click', ...) inteiro por este:
+
+logsBtn.addEventListener('click', () => {
+    const logStartDateInput = document.getElementById('log-start-date');
+    const logEndDateInput = document.getElementById('log-end-date');
+    const logFilterBtn = document.getElementById('log-filter-btn');
+
+    // Função interna para buscar e renderizar os logs
+    const fetchAndRenderLogs = async (startTimestamp = null, endTimestamp = null) => {
+        logsContainer.innerHTML = '<p>A carregar histórico...</p>';
+
+        let logQuery;
+        if (startTimestamp && endTimestamp) {
+            // Se as datas foram fornecidas, cria uma query com intervalo
+            logQuery = query(ref(database, 'logs'), orderByChild('timestamp'), startAt(startTimestamp), endAt(endTimestamp));
+        } else {
+            // Caso contrário, busca os últimos 100 registros como antes
+            logQuery = query(ref(database, 'logs'), orderByChild('timestamp'), limitToLast(100));
+        }
+
         try {
             const snapshot = await get(logQuery);
             if (snapshot.exists()) {
-                logsContainer.innerHTML = Object.values(snapshot.val()).reverse().map(log => `
+                const logsData = snapshot.val();
+                const sortedLogs = Object.values(logsData).reverse();
+
+                logsContainer.innerHTML = sortedLogs.map(log => `
                     <div class="log-entry">
                         <div><span class="user">${log.userEmail}</span> alterou a porta <strong>${log.portId}</strong> do switch <strong>${log.switchName}</strong></div>
                         <div class="details">${log.details}</div>
                         <div class="time">${new Date(log.timestamp).toLocaleString('pt-BR')}</div>
                     </div>`).join('');
             } else {
-                logsContainer.innerHTML = '<p>Nenhum registro de histórico encontrado.</p>';
+                logsContainer.innerHTML = '<p>Nenhum registro de histórico encontrado para o período selecionado.</p>';
             }
         } catch (error) {
             console.error("Erro ao buscar logs:", error);
             logsContainer.innerHTML = '<p>Ocorreu um erro ao carregar o histórico.</p>';
         }
-        openModal(logsModal);
+    };
+
+    // Listener para o botão de filtrar
+    logFilterBtn.addEventListener('click', () => {
+        const startDate = logStartDateInput.value;
+        const endDate = logEndDateInput.value;
+
+        if (!startDate || !endDate) {
+            alert('Por favor, selecione uma data de início e de fim.');
+            return;
+        }
+
+        // Converte as datas para timestamp (milissegundos)
+        // Adiciona a hora para garantir que o intervalo inclua o dia inteiro
+        const startTimestamp = new Date(startDate + 'T00:00:00').getTime();
+        const endTimestamp = new Date(endDate + 'T23:59:59').getTime();
+
+        fetchAndRenderLogs(startTimestamp, endTimestamp);
     });
+
+    // Ao abrir o modal, busca os logs mais recentes por padrão
+    fetchAndRenderLogs();
+    openModal(logsModal);
+});
     templatesBtn.addEventListener('click', () => openModal(templatesModal));
     logoutBtn.addEventListener('click', () => {
         signOut(auth).then(() => {
