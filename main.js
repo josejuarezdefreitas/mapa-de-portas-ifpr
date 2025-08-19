@@ -1,8 +1,8 @@
 // main.js
 
 // Importações do Firebase
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { auth, database } from './firebase-config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
 import { ref, onValue, set, update, remove, push, serverTimestamp, query, orderByChild, limitToLast, get } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
 // Referências principais do Firebase
@@ -31,25 +31,24 @@ function startApp() {
     const portTooltip = document.getElementById('port-tooltip');
     const logsBtn = document.getElementById('logs-btn');
     const templatesBtn = document.getElementById('templates-btn');
+	const logoutBtn = document.getElementById('logout-btn');
     
-    // Modais
+    // Modais e seus componentes
     const portModal = document.getElementById('port-modal');
-    const addSwitchModal = document.getElementById('add-switch-modal');
-    const editSwitchModal = document.getElementById('edit-switch-modal');
-    const deleteConfirmModal = document.getElementById('delete-confirm-modal');
-    const logsModal = document.getElementById('logs-modal');
-    const templatesModal = document.getElementById('templates-modal');
-
-    // Formulários e seus componentes
     const portForm = document.getElementById('port-form');
+    const addSwitchModal = document.getElementById('add-switch-modal');
     const addSwitchForm = document.getElementById('add-switch-form');
     const switchTemplateSelect = document.getElementById('switch-template');
+    const editSwitchModal = document.getElementById('edit-switch-modal');
     const editSwitchForm = document.getElementById('edit-switch-form');
+    const deleteConfirmModal = document.getElementById('delete-confirm-modal');
     const deleteConfirmForm = document.getElementById('delete-confirm-form');
     const deleteSwitchNameSpan = document.getElementById('delete-switch-name');
     const deleteConfirmInput = document.getElementById('delete-confirm-input');
     const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
+    const logsModal = document.getElementById('logs-modal');
     const logsContainer = document.getElementById('logs-container');
+    const templatesModal = document.getElementById('templates-modal');
     const templatesList = document.getElementById('templates-list');
     const templateForm = document.getElementById('template-form');
     const templateFormTitle = document.getElementById('template-form-title');
@@ -88,9 +87,7 @@ function startApp() {
         if (!user) return; 
         const logRef = ref(database, 'logs');
         const switchName = appData[switchId]?.name || 'N/A';
-        const newLog = {
-            userEmail: user.email, timestamp: serverTimestamp(), action, switchId, switchName, portId, details
-        };
+        const newLog = { userEmail: user.email, timestamp: serverTimestamp(), action, switchId, switchName, portId, details };
         push(logRef, newLog);
     }
 
@@ -135,14 +132,18 @@ function startApp() {
             portBlock.innerHTML = oddPortsHTML.join('') + evenPortsHTML.join('');
             portsContainer.appendChild(portBlock);
         });
-        const urlLink = switchObj.url ? `<a href="${switchObj.url}" target="_blank" title="${switchObj.url}">${switchObj.url}</a>` : 'N/A';
+        const urlLink = switchObj.url ? `<a href="${switchObj.url}" target="_blank" title="Acessar interface de gerenciamento">GERENCIAR</a>` : 'N/A';
+        const productUrlLink = switchObj.productUrl ? `<a href="${switchObj.productUrl}" target="_blank" title="Ver página do produto">VER PRODUTO</a>` : '';
+        const modelNumberHTML = switchObj.modelNumber ? `<span>MODELO Nº: ${switchObj.modelNumber} ${productUrlLink}</span>` : '';
         const metadataHTML = `
             <div class="switch-metadata">
-                <span>MODELO: ${switchObj.model || 'N/A'}</span>
+                <span>DESCRIÇÃO: ${switchObj.model || 'N/A'}</span>
+                ${modelNumberHTML}
+                <hr>
                 <span>IP: ${switchObj.ip || 'N/A'}</span>
                 <span>MAC: ${switchObj.mac || 'N/A'}</span>
-                <span>LINK: ${urlLink}</span>
                 <span>PATRIMONIO: ${switchObj.assetId || 'N/A'}</span>
+                <span>GERENCIAMENTO: ${urlLink}</span>
             </div>`;
         switchDevice.innerHTML = `
             <div class="switch-header">
@@ -193,7 +194,6 @@ function startApp() {
     async function listenForTemplates() {
         const snapshot = await get(templatesRef);
         if (!snapshot.exists()) {
-            console.log("Nenhum modelo encontrado no Firebase. Migrando modelos locais...");
             await set(templatesRef, initialSwitchTemplates);
         }
         onValue(templatesRef, (snapshot) => {
@@ -217,14 +217,12 @@ function startApp() {
                 const switchId = e.target.closest('.switch-device').dataset.switchId;
                 const portId = e.target.dataset.portId;
                 currentEditing = { type: 'port', switchId, portId };
-                const switchObj = appData[switchId];
-                if (!switchObj) return;
-                const portData = switchObj.ports?.[portId] || {};
-                document.getElementById('port-modal-title').textContent = `Editando: ${switchObj.name} - Porta ${portId}`;
+                const portData = appData[switchId]?.ports?.[portId] || {};
+                document.getElementById('port-modal-title').textContent = `Editando: ${appData[switchId]?.name} - Porta ${portId}`;
                 portForm.reset();
-                for(const key in portData) {
-                    if(portForm.elements[key]) portForm.elements[key].value = portData[key];
-                }
+                Object.keys(portData).forEach(key => {
+                    if (portForm.elements[key]) portForm.elements[key].value = portData[key];
+                });
                 openModal(portModal);
             });
             port.addEventListener('mouseover', (e) => {
@@ -272,13 +270,11 @@ function startApp() {
 
     addSwitchBtn.addEventListener('click', () => openModal(addSwitchModal));
     logsBtn.addEventListener('click', async () => {
-        const logsRef = ref(database, 'logs');
-        const logQuery = query(logsRef, orderByChild('timestamp'), limitToLast(100));
+        const logQuery = query(ref(database, 'logs'), orderByChild('timestamp'), limitToLast(100));
         try {
             const snapshot = await get(logQuery);
             if (snapshot.exists()) {
-                const logsData = snapshot.val();
-                logsContainer.innerHTML = Object.values(logsData).reverse().map(log => `
+                logsContainer.innerHTML = Object.values(snapshot.val()).reverse().map(log => `
                     <div class="log-entry">
                         <div><span class="user">${log.userEmail}</span> alterou a porta <strong>${log.portId}</strong> do switch <strong>${log.switchName}</strong></div>
                         <div class="details">${log.details}</div>
@@ -294,24 +290,28 @@ function startApp() {
         openModal(logsModal);
     });
     templatesBtn.addEventListener('click', () => openModal(templatesModal));
+    logoutBtn.addEventListener('click', () => {
+        signOut(auth).then(() => {
+            window.location.href = 'login.html';
+        }).catch((error) => {
+            console.error('Erro ao fazer logout:', error);
+            showToast('Não foi possível sair. Tente novamente.', 'error');
+        });
+    });
 
-    // Listeners de Formulários
+    // Listeners de Formulários e Modais
     addSwitchForm.addEventListener('submit', e => {
         e.preventDefault();
         const templateKey = e.target.elements.templateKey.value;
         const customName = e.target.elements.customName.value;
         const template = templateData[templateKey];
-        if (!template) {
-            showToast('Modelo selecionado inválido.', 'error');
-            return;
-        }
+        if (!template) { showToast('Modelo selecionado inválido.', 'error'); return; }
         const newSwitch = {
             id: `sw_${Date.now()}`, name: customName, model: template.model, layout: template.layout, 
+            productUrl: template.productUrl || '', modelNumber: template.modelNumber || '',
             location: '', ip: '', assetId: '', mac: '', url: '', ports: {}
         };
-        set(ref(database, `switches/${newSwitch.id}`), newSwitch).then(() => {
-            showToast(`Switch "${customName}" criado com sucesso!`);
-        });
+        set(ref(database, `switches/${newSwitch.id}`), newSwitch).then(() => showToast(`Switch "${customName}" criado com sucesso!`));
         closeModal(addSwitchModal);
         e.target.reset();
     });
@@ -319,11 +319,8 @@ function startApp() {
     editSwitchForm.addEventListener('submit', e => {
         e.preventDefault();
         if (currentEditing.type !== 'switch') return;
-        const switchRef = ref(database, `switches/${currentEditing.switchId}`);
         const updatedData = Object.fromEntries(new FormData(e.target).entries());
-        update(switchRef, updatedData).then(() => {
-            showToast(`Switch "${updatedData.name}" atualizado!`);
-        });
+        update(ref(database, `switches/${currentEditing.switchId}`), updatedData).then(() => showToast(`Switch "${updatedData.name}" atualizado!`));
         closeModal(editSwitchModal);
     });
 
@@ -335,11 +332,7 @@ function startApp() {
         const newData = Object.fromEntries(new FormData(portForm).entries());
         newData.status = 'active';
         let details = 'Dados da porta atualizados. ';
-        Object.keys(newData).forEach(key => {
-            if (newData[key] !== oldData[key]) {
-                details += `[${key}: "${oldData[key] || ''}" -> "${newData[key]}"] `;
-            }
-        });
+        Object.keys(newData).forEach(key => { if (newData[key] !== oldData[key]) details += `[${key}: "${oldData[key] || ''}" -> "${newData[key]}"] `; });
         const portRef = ref(database, `switches/${switchId}/ports/${portId}`);
         set(portRef, newData).then(() => {
             showToast(`Porta ${portId} salva com sucesso!`);
@@ -352,9 +345,7 @@ function startApp() {
         e.preventDefault();
         if (switchToDeleteId) {
             const switchName = appData[switchToDeleteId].name;
-            remove(ref(database, `switches/${switchToDeleteId}`)).then(() => {
-                showToast(`Switch "${switchName}" apagado com sucesso.`, 'error');
-            });
+            remove(ref(database, `switches/${switchToDeleteId}`)).then(() => showToast(`Switch "${switchName}" apagado com sucesso.`, 'error'));
         }
         closeModal(deleteConfirmModal);
         switchToDeleteId = null;
@@ -392,7 +383,7 @@ function startApp() {
         const layout = [];
         if (formData.get('b1_count')) layout.push({ type: formData.get('b1_type'), count: Number(formData.get('b1_count')) });
         if (formData.get('b2_count')) layout.push({ type: formData.get('b2_type'), count: Number(formData.get('b2_count')) });
-        const newTemplate = { name: formData.get('name'), model: formData.get('model'), layout };
+        const newTemplate = { name: formData.get('name'), model: formData.get('model'), modelNumber: formData.get('modelNumber'), productUrl: formData.get('productUrl'), layout };
         if (id) {
             update(ref(database, `switchTemplates/${id}`), newTemplate).then(() => showToast(`Modelo "${newTemplate.name}" atualizado!`));
         } else {
@@ -416,13 +407,15 @@ function startApp() {
             templateForm.elements.templateId.value = id;
             templateForm.elements.name.value = template.name;
             templateForm.elements.model.value = template.model;
+            templateForm.elements.modelNumber.value = template.modelNumber || '';
+            templateForm.elements.productUrl.value = template.productUrl || '';
             templateForm.elements.b1_count.value = '';
             templateForm.elements.b2_count.value = '';
-            if(template.layout?.[0]) {
+            if (template.layout?.[0]) {
                 templateForm.elements.b1_type.value = template.layout[0].type;
                 templateForm.elements.b1_count.value = template.layout[0].count;
             }
-            if(template.layout?.[1]) {
+            if (template.layout?.[1]) {
                 templateForm.elements.b2_type.value = template.layout[1].type;
                 templateForm.elements.b2_count.value = template.layout[1].count;
             }
@@ -435,7 +428,7 @@ function startApp() {
     cancelEditTemplateBtn.addEventListener('click', resetTemplateForm);
 
     [portModal, addSwitchModal, editSwitchModal, deleteConfirmModal, logsModal, templatesModal].forEach(m => {
-        if(m) {
+        if (m) {
             m.querySelector('.modal-close-btn').addEventListener('click', () => closeModal(m));
             m.addEventListener('click', e => { if (e.target === m) closeModal(m); });
         }

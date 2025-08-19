@@ -16,6 +16,7 @@
             <button id="templates-btn">Gerenciar Modelos</button>
             <button id="logs-btn">Ver Histórico</button>
             <button id="add-switch-btn">Adicionar Novo Switch</button>
+            <button id="logout-btn">Sair</button>
         </div>
     </header>
 
@@ -179,7 +180,14 @@
                         <label for="template-model">Descrição (Ex: 52 Portas (48 Cobre + 4 Fibra)):</label>
                         <input type="text" id="template-model" name="model" required>
                     </div>
-                    
+                    <div class="form-group">
+                        <label for="template-model-number">Número do Modelo (Ex: JL685A):</label>
+                        <input type="text" id="template-model-number" name="modelNumber">
+                    </div>
+                    <div class="form-group">
+                        <label for="template-product-url">Link da Página do Produto:</label>
+                        <input type="url" id="template-product-url" name="productUrl" placeholder="https://...">
+                    </div>
                     <strong class="form-section-title">Bloco de Portas 1</strong>
                     <div class="form-group-inline">
                         <div class="form-group">
@@ -194,7 +202,6 @@
                             <input type="number" id="template-b1-count" name="b1_count" min="1" required>
                         </div>
                     </div>
-
                     <strong class="form-section-title">Bloco de Portas 2 (Opcional)</strong>
                      <div class="form-group-inline">
                         <div class="form-group">
@@ -209,7 +216,6 @@
                             <input type="number" id="template-b2-count" name="b2_count" min="1">
                         </div>
                     </div>
-
                     <div class="form-buttons">
                         <button type="button" id="cancel-edit-template-btn" style="display: none;">Cancelar Edição</button>
                         <button type="submit" id="save-template-btn">Adicionar Modelo</button>
