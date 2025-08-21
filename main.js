@@ -55,6 +55,49 @@ function startApp() {
     const saveTemplateBtn = document.getElementById('save-template-btn');
     const cancelEditTemplateBtn = document.getElementById('cancel-edit-template-btn');
 	
+	// --- Adicione este bloco para a funcionalidade de pesquisa ---
+    searchBar.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+
+        document.querySelectorAll('.switch-device').forEach(switchElement => {
+            const switchId = switchElement.dataset.switchId;
+            const switchData = appData[switchId];
+            let isVisible = false;
+
+            // Se o termo de busca estiver vazio, mostra todos os switches
+            if (searchTerm === '') {
+                isVisible = true;
+            } else {
+                // Verifica se o nome ou localização do switch corresponde
+                if (switchData.name.toLowerCase().includes(searchTerm) || 
+                    (switchData.location && switchData.location.toLowerCase().includes(searchTerm))) {
+                    isVisible = true;
+                }
+
+                // Se ainda não encontrou, procura dentro das portas
+                if (!isVisible && switchData.ports) {
+                    for (const portId in switchData.ports) {
+                        const port = switchData.ports[portId];
+                        const searchablePortData = [
+                            port.deviceName,
+                            port.ipAddress,
+                            port.macAddress,
+                            port.deviceModel,
+                            port.notes
+                        ].join(' ').toLowerCase();
+
+                        if (searchablePortData.includes(searchTerm)) {
+                            isVisible = true;
+                            break; // Encontrou uma porta correspondente, pode parar de procurar neste switch
+                        }
+                    }
+                }
+            }
+
+            // Mostra ou esconde o switch inteiro
+            switchElement.style.display = isVisible ? 'block' : 'none';
+        });
+    });
     // --- 2. VARIÁVEIS DE ESTADO DA APLICAÇÃO ---
     let appData = {};
     let templateData = {};
